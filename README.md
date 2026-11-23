@@ -5,6 +5,7 @@ Condividi i costi di carburante e manutenzione quando viaggi in gruppo con un ve
 ## Funzionalità
 
 - **Garage multi-veicolo**: gestisci più veicoli e passa dall'uno all'altro.
+- **Veicoli condivisi (stesso dispositivo)**: più account sullo stesso telefono possono usare lo stesso veicolo tramite codice. La condivisione tra telefoni diversi arriverà con il cloud (Fase 4).
 - **Viaggi con contachilometri**: registrazione km iniziali/finali, con suggerimenti automatici basati sull'ultimo valore noto.
 - **Rifornimenti**: quantità, prezzo, km — con calcolo del consumo.
 - **Bilanci del gruppo**: chi ha pagato, chi ha guidato, quota km di ciascuno, compensazioni per pareggiare i conti.
@@ -58,8 +59,9 @@ Ogni release segue la checklist in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 ## Roadmap
 
-- [ ] Grafico statistiche consumo
-- [ ] Backup/ripristino completo dei dati
+- [x] Grafico statistiche consumo (barre mensili in Overview)
+- [~] Backup/ripristino: l'import CSV ricostruisce solo viaggi e rifornimenti (senza utente originale, veicoli e saldi). Il backup completo è ancora da fare
+- [ ] Condivisione veicolo tra telefoni diversi (oggi il codice funziona solo tra account sullo stesso dispositivo)
 - [ ] Fase 4 — cloud (Supabase): sincronizzazione di gruppo, recupero password via email, 2FA *(l'app resterà usabile offline)*
 - [ ] Pubblicazione Play Store
 

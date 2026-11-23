@@ -1,41 +1,52 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+FuelShare è un'app mobile Expo / React Native (JavaScript, non TypeScript), 100% offline con database SQLite locale. Dare priorità a pattern mobile-first, prestazioni e compatibilità Android (target principale).
 
-## Expo has changed — do not trust your training data
+## Expo cambia spesso — non fidarti della memoria
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+Expo introduce breaking change a ogni SDK. Prima di scrivere codice che tocca API Expo, EAS o React Native:
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+1. Leggi la versione major di `expo` in `package.json` (attualmente SDK 58).
+2. Consulta la documentazione versionata: `https://docs.expo.dev/versions/v58.0.0/`
+3. Per il resto usa l'indice https://docs.expo.dev/llms.txt e segui i link alla pagina specifica.
 
-## Commands
+## Comandi
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+Il progetto usa **npm** (`package-lock.json`), non bun.
 
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+npm install
+npx expo install <package>  # SEMPRE al posto di npm add: sceglie la versione compatibile con l'SDK
+npx expo start -c           # dev server (-c svuota la cache)
+npx expo-doctor             # diagnosi di dipendenze e configurazione
+npx expo install --fix      # allinea le versioni incompatibili
 ```
 
-Run lint and typecheck before declaring any task done.
+Non esistono script di lint né di typecheck (nessun TypeScript/ESLint configurato). Prima di dichiarare finito un lavoro: `npx expo-doctor` e verifica che `npx expo start -c` parta senza errori.
 
-## Navigation & Routing
+## Architettura
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- `index.js` → `App.js`: provider (`SafeAreaProvider` → `ThemeProvider` → `AppProvider`) e navigazione.
+- **Navigazione: React Navigation** (`@react-navigation/native` + `native-stack`), NON Expo Router. Non esiste `src/app/`.
+  - `AuthStack`: Login / Register / ForgotPassword (utente non autenticato).
+  - `MainStack`: `Tabs` + schermate modali (Settings, AddVehicle, AddTrip, AddRefuel, SelectiveClear).
+  - `Tabs` è una `PagerView` personalizzata con barra in basso (`TABS` in `App.js`): Overview, FillUp (storico + pulsanti di registrazione), Garage, Service (export/import/pulizia dati).
+- `src/context/AppContext.js`: stato globale (utente, veicoli, viaggi, rifornimenti) e azioni; unico punto che parla con il database.
+- `src/db/database.js`: schema SQLite (`expo-sqlite`, API sincrone), migrazioni, query.
+- `src/utils/calc.js`: saldi in litri, compensazioni, statistiche mensili.
+- `src/utils/security.js`: hash password (scrypt), sessioni, codice di recupero, validazioni.
+- `src/utils/exporters.js`: export CSV/PDF e import CSV.
 
-## Building with EAS
+## Modello dati (importante)
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
+Tutti i dati stanno nel SQLite del singolo telefono. Non c'è sincronizzazione: un "veicolo condiviso" (codice/link `fuelshare://join/CODICE`) funziona solo tra account presenti **sullo stesso dispositivo**. La sincronizzazione tra telefoni diversi è prevista nella Fase 4 (cloud, Supabase) e non è ancora implementata.
+
+## Build con EAS
+
+Le release si producono in locale con `./build-release.sh` (`eas build --local`), vedi `RELEASE_CHECKLIST.md`. Esegui l'EAS CLI come `npx eas-cli@latest <comando>` oppure con `eas` se installato globalmente.
 Docs: https://docs.expo.dev/eas/index.md
 
-## Rules
+## Regole
 
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+- Le cartelle `ios/` e `android/` non esistono: sono generate (Continuous Native Generation). Non crearle né modificarle a mano; configura il comportamento nativo in `app.json` e nei config plugin.
+- Expo Go include solo i moduli nativi inclusi nell'SDK. Dopo aver aggiunto una libreria con codice nativo serve una development build: `npx expo run:android` in locale, oppure `eas build --profile development`.
+- Preferisci i moduli Expo consigliati alle librerie di terze parti. Docs: https://docs.expo.dev/versions/v58.0.0/
+- Non committare mai keystore, `credentials.json` o file `.env` (già in `.gitignore`).
