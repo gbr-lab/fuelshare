@@ -29,6 +29,12 @@
       "expo-sharing",
       "expo-font",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0ede7f72-6367-451f-8544-0aa2d6e031e2"
+      }
+    },
+    "owner": "beatdeath"
   }
 }
